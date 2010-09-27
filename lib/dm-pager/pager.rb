@@ -56,12 +56,14 @@ module DataMapper
     # === Options
     #
     #   :size   Number of intermediate page number links to be shown; Defaults to 7
+    #   :clean  Renders clean URLs without the page parameter
     #
 
     def to_html uri, options = {}
       return unless total_pages > 1
       @uri, @options = uri, options
       @size = option :size
+      @clean = option :clean
       raise ArgumentError, 'invalid :size; must be an odd number' if @size % 2 == 0
       @size /= 2
       [%(<ul class="#{Pagination.defaults[:pager_class]}">),
@@ -183,10 +185,16 @@ module DataMapper
     #
 
     def uri_for page
-      case @uri
-      when /\b#{@page_param}=/ ; @uri.gsub /\b#{@page_param}=\d+/, "#{@page_param}=#{page}"
-      when /\?/      ; @uri += "&#{@page_param}=#{page}"
-      else           ; @uri += "?#{@page_param}=#{page}"
+      uri = @uri
+      if @clean
+        uri = "" if uri == "/"
+        uri += "/#{page}"
+      else
+        case uri
+        when /\b#{@page_param}=/ ; uri.gsub /\b#{@page_param}=\d+/, "#{@page_param}=#{page}"
+        when /\?/                ; uri += "&#{@page_param}=#{page}"
+        else                     ; uri += "?#{@page_param}=#{page}"
+        end
       end
     end
 

@@ -224,14 +224,39 @@ describe DataMapper::Pager do
       end
 
       describe "when containing other keys with 'page'" do
-        it "should append a pair" do
-          markup = Item.page.pager.to_html 'items?per_page=5'
-          markup.should include('items?per_page=5&page=1')
-          markup = Item.page.pager.to_html 'items?page=4&per_page=3'
-          markup.should include('items?page=1&per_page=3')
-        end
+         it "should append a pair" do
+            markup = Item.page.pager.to_html 'items?per_page=5'
+            markup.should include('items?per_page=5&page=1')
+            markup = Item.page.pager.to_html 'items?page=4&per_page=3'
+            markup.should include('items?page=1&per_page=3')
+         end
+      end
+      
+      describe "option :clean => true" do
+         it "should not render the 'page' parameter" do
+            markup = Item.page(1, :per_page => 1).pager.to_html('/page', :size => 1, :clean => true)
+            markup.should_not include('?page=') 
+            markup.should_not include('&page=')
+         end
+        
+         it "should render /:uri/:page" do
+            markup = Item.page(1, :per_page => 1).pager.to_html('/page', :size => 3, :clean => true)
+            markup.should include('<a href="/page/1"')
+            markup.should include('<a href="/page/2"')
+            markup.should include('<a href="/page/3"')
+            markup = Item.page(1, :per_page => 1).pager.to_html('/articles', :size => 3, :clean => true)
+            markup.should include('<a href="/articles/1"')
+            markup.should include('<a href="/articles/2"')
+            markup.should include('<a href="/articles/3"')
+         end
+         
+         it "should render with an empty :uri" do
+            markup = Item.page(1, :per_page => 1).pager.to_html('/', :size => 1, :clean => true)
+            markup.should include('<a href="/1"')
+            markup = Item.page(1, :per_page => 1).pager.to_html('', :size => 1, :clean => true)
+            markup.should include('<a href="/1"')
+         end
       end
     end
-
   end
 end
